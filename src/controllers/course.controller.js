@@ -47,3 +47,14 @@ exports.remove = async (req, res) => {
   if (!course) return res.sendStatus(404);
   res.sendStatus(204);
 };
+
+exports.softDelete = async (req, res) => {
+  const { id } = req.params;
+  const course = await Course.findById(id);
+  if (!course) return res.sendStatus(404);
+
+  course.deleted = true;
+  await course.save();
+
+  res.sendStatus(204);
+}
