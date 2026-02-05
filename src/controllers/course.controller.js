@@ -18,7 +18,7 @@ exports.list = async (req, res) => {
 
 exports.get = async (req, res) => {
   const { id } = req.params;
-  
+
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({
       message: "ID de MongoDB inválido"
@@ -43,12 +43,12 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   const { id } = req.params;
 
-   if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({
       message: "ID de MongoDB inválido"
     });
   }
-  
+
   const updates = req.body;
 
   const course = await Course.findByIdAndUpdate(id, updates, { new: true });
@@ -59,6 +59,13 @@ exports.update = async (req, res) => {
 
 exports.remove = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: "ID de MongoDB inválido"
+    });
+  }
+
   const course = await Course.findByIdAndDelete(id);
   if (!course) return res.sendStatus(404);
   res.sendStatus(204);
