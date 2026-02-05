@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const Course = require('../models/course.model');
 
 exports.list = async (req, res) => {
@@ -17,6 +18,14 @@ exports.list = async (req, res) => {
 
 exports.get = async (req, res) => {
   const { id } = req.params;
+  
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: "ID de MongoDB inválido"
+    });
+  }
+
+
   const course = await Course.findById(id);
   if (!course) return res.sendStatus(404);
   res.json(course);

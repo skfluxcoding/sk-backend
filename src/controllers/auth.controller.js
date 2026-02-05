@@ -71,7 +71,6 @@ exports.refresh = async (req, res) => {
   const user = await User.findById(stored.userId);
   if (!user) return res.sendStatus(401);
 
-  // 🔁 ROTATION
   const newRefreshToken = refreshUtil.generate();
 
   stored.revoked = true;
