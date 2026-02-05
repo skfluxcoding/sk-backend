@@ -42,6 +42,13 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   const { id } = req.params;
+
+   if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: "ID de MongoDB inválido"
+    });
+  }
+  
   const updates = req.body;
 
   const course = await Course.findByIdAndUpdate(id, updates, { new: true });
