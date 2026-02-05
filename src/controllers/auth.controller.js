@@ -13,7 +13,9 @@ exports.register = async (req, res) => {
     password: await passwordUtil.hash(password)
   });
 
-  res.status(201).json({ message: 'User created' });
+  const token = jwtUtil.generateAccessToken(user);
+
+  res.status(201).json({ accessToken: token });
 };
 
 exports.login = async (req, res) => {

@@ -9,7 +9,7 @@ function authMiddleware(req, res, next) {
 
   const [, token] = authHeader.split(' ');
 
-  const payload = verifyToken(token, process.env.SECRET_KEY);
+  const payload = verifyToken(token);
 
   if (!payload) {
     return res.status(401).json({ message: 'Invalid or expired token' });
