@@ -4,7 +4,7 @@ const Course = require('../models/course.model');
 exports.list = async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
-
+  
   const options = {
     page,
     limit,
@@ -79,7 +79,7 @@ exports.softDelete = async (req, res) => {
       message: "ID de MongoDB inválido"
     });
   }
-  
+
   const course = await Course.findById(id);
   if (!course) return res.sendStatus(404);
 
