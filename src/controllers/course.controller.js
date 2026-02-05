@@ -73,6 +73,13 @@ exports.remove = async (req, res) => {
 
 exports.softDelete = async (req, res) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      message: "ID de MongoDB inválido"
+    });
+  }
+  
   const course = await Course.findById(id);
   if (!course) return res.sendStatus(404);
 
