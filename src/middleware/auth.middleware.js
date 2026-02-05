@@ -1,6 +1,6 @@
 const { verifyToken } = require("../utils/jwt.util");
 
-function authMiddleware(req, res, next) {
+exports.checkJwt = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -19,5 +19,18 @@ function authMiddleware(req, res, next) {
   next();
 }
 
+exports.checkRoleUser = (req, res, next) => {
+  const { roles } = req.user;
+  if (!roles.includes('USER')) {
+    return res.status(403).json({ message: 'Access forbidden: Requires USER role' });
+  }
+  next();
+}
 
-module.exports = authMiddleware;
+exports.checkRoleAdmin = (req, res, next) => {
+  const { roles } = req.user;
+  if (!roles.includes('ADMIN')) {
+    return res.status(403).json({ message: 'Access forbidden: Requires ADMIN role' });
+  }
+  next();
+}

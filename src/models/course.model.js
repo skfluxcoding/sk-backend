@@ -22,6 +22,10 @@ const CourseSchema = new mongoose.Schema({
   published: {
     type: Boolean,
     default: false
+  },
+  enabled: {
+    type: Boolean,
+    default: true
   }
 }, { timestamps: true });
 
