@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
-/**
- * Course model (basic)
- * Fields: title, description, instructor, published
- */
 const CourseSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -27,9 +23,8 @@ const CourseSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   }
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 
-// Add pagination plugin
 CourseSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Course', CourseSchema);

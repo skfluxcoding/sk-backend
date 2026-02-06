@@ -17,7 +17,7 @@ exports.createCourse = [
         .isBoolean().withMessage('Published debe ser boolean')
 ];
 
-exports.listCourses = [
+exports.findAllCourses = [
     query('page')
         .optional()
         .isInt({ min: 1 }).withMessage('Page debe ser >= 1'),
