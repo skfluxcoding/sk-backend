@@ -41,3 +41,12 @@ exports.softDelete = async (req, res) => {
   if (!student) return res.sendStatus(404);
   res.sendStatus(204);
 };
+
+exports.create = async (req, res) => {
+  if (!req.body.name || !req.body.email) {
+    return res.status(400).json({ message: 'name and email are required' });
+  }
+
+  const student = await StudentService.create(req.body);
+  res.status(201).json(student);
+};
