@@ -16,3 +16,6 @@ app.use('/auth', authRoutes);
 app.use('/courses', courseRoutes);
 
 module.exports = app;
+
+const studentRoutes = require('./routes/student.routes');
+app.use('/api/students', studentRoutes);
