@@ -1,90 +1,85 @@
-const { default: mongoose } = require('mongoose');
 const Course = require('../models/course.model');
 
-exports.list = async (req, res) => {
+exports.findAll = async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
-  
+
   const options = {
     page,
     limit,
-    sort: { createdAt: -1 }
+    sort: { createdAt: -1 },
+    select: 'title description instructor published',
+    populate: {
+      path: 'instructor',
+      select: 'email'
+    }
   };
 
-  const result = await Course.paginate({}, options);
+  const result = await Course.paginate({ enabled: 1 }, options);
+
+  const data = result.docs.map(course => ({
+    courseId: course._id,
+    title: course.title,
+    description: course.description,
+    instructor: {
+      uid: course.instructor._id,
+      email: course.instructor.email,
+    },
+    published: course.published
+  }));
+
+  result.docs = data;
 
   res.json(result);
-};
-
-exports.get = async (req, res) => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: "ID de MongoDB inválido"
-    });
-  }
-
-
-  const course = await Course.findById(id);
-  if (!course) return res.sendStatus(404);
-  res.json(course);
 };
 
 exports.create = async (req, res) => {
   const { title, description, instructor, published } = req.body;
   if (!title) return res.status(400).json({ message: 'Title is required' });
 
-  const course = await Course.create({ title, description, instructor, published });
+  const course = await Course.create({ title, description, instructor, published })
 
-  res.status(201).json(course);
+  res.status(201).json({
+    courseId: course._id,
+    title: course.title,
+    description: course.description,
+    instructor: {
+      uid: course.instructor._id,
+      email: course.instructor.email,
+    },
+    published: course.published
+  });
+};
+
+exports.findOne = async (req, res) => {
+  const { id } = req.params;
+
+  const course = await Course.findOne({ _id: id, enabled: 1 });
+  if (!course) {
+    return res.status(404).json({ message: 'Course not found' });
+  }
+  res.status(200).json(course);
 };
 
 exports.update = async (req, res) => {
   const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: "ID de MongoDB inválido"
-    });
-  }
-
   const updates = req.body;
 
-  const course = await Course.findByIdAndUpdate(id, updates, { new: true });
-  if (!course) return res.sendStatus(404);
-
-  res.json(course);
-};
-
-exports.remove = async (req, res) => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: "ID de MongoDB inválido"
-    });
+  const course = await Course.findOneAndUpdate({ _id: id, enabled: 1 }, updates, { new: true });
+  if (!course) {
+    return res.status(404).json({ message: 'Course not found' });
   }
 
-  const course = await Course.findByIdAndDelete(id);
-  if (!course) return res.sendStatus(404);
-  res.sendStatus(204);
+  res.status(200).json(course);
 };
 
 exports.softDelete = async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({
-      message: "ID de MongoDB inválido"
-    });
+  const course = await Course.findOneAndUpdate({ _id: id, enabled: 1 }, { enabled: false }, { new: true });
+  if (!course) {
+    return res.status(404).json({ message: 'Course not found' });
   }
-
-  const course = await Course.findById(id);
-  if (!course) return res.sendStatus(404);
-
-  course.deleted = true;
-  await course.save();
 
   res.sendStatus(204);
 }
