@@ -33,3 +33,9 @@ exports.softDelete = async (req, res) => {
   if (!student) return res.sendStatus(404);
   res.sendStatus(204);
 };
+
+exports.softDelete = async (req, res) => {
+  const student = await StudentService.remove(req.params.id);
+  if (!student) return res.sendStatus(404);
+  res.sendStatus(204);
+};
