@@ -19,3 +19,6 @@ module.exports = app;
 
 const studentRoutes = require('./routes/student.routes');
 app.use('/api/students', studentRoutes);
+
+const errorMiddleware = require('./middleware/error.middleware');
+app.use(errorMiddleware);
