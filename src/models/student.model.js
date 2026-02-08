@@ -33,3 +33,5 @@ const StudentSchema = new mongoose.Schema(
 StudentSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Student', StudentSchema);
+
+StudentSchema.index({ email: 1 });
