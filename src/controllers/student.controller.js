@@ -1,9 +1,16 @@
-
 const StudentService = require('../services/student.service');
 
 exports.list = async (req, res) => {
-  const students = await StudentService.findAll();
-  res.json(students);
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+
+  const result = await StudentService.paginate({
+    page,
+    limit,
+    sort: { createdAt: -1 }
+  });
+
+  res.json(result);
 };
 
 exports.get = async (req, res) => {
@@ -24,12 +31,6 @@ exports.update = async (req, res) => {
 };
 
 exports.remove = async (req, res) => {
-  const student = await StudentService.remove(req.params.id);
-  if (!student) return res.sendStatus(404);
-  res.sendStatus(204);
-};
-
-exports.softDelete = async (req, res) => {
   const student = await StudentService.remove(req.params.id);
   if (!student) return res.sendStatus(404);
   res.sendStatus(204);
