@@ -7,3 +7,6 @@ exports.update = (id, data) =>
   Student.findOneAndUpdate({ _id: id, deleted: false }, data, { new: true });
 exports.remove = (id) =>
   Student.findByIdAndUpdate(id, { deleted: true }, { new: true });
+
+exports.paginate = (options) =>
+  Student.paginate({ deleted: false }, options);
