@@ -1,3 +1,4 @@
+
 const StudentService = require('../services/student.service');
 
 exports.list = async (req, res) => {
