@@ -9,3 +9,5 @@ router.put('/:id', validateObjectId, controller.update);
 router.delete('/:id', validateObjectId, controller.remove);
 
 module.exports = router;
+
+router.patch('/:id/soft-delete', validateObjectId, controller.softDelete);
