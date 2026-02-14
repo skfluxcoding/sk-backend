@@ -35,21 +35,40 @@ exports.findAll = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const { title, description, instructor, published } = req.body;
-  if (!title) return res.status(400).json({ message: 'Title is required' });
+  try {
+    const { title, description, instructor, published } = req.body;
 
-  const course = await Course.create({ title, description, instructor, published })
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
+    }
 
-  res.status(201).json({
-    courseId: course._id,
-    title: course.title,
-    description: course.description,
-    instructor: {
-      uid: course.instructor._id,
-      email: course.instructor.email,
-    },
-    published: course.published
-  });
+    if (instructor && !mongoose.isValidObjectId(instructor)) {
+      return res.status(400).json({ message: 'Invalid instructor id' });
+    }
+
+    const course = await Course.create({
+      title,
+      description,
+      instructor,
+      published
+    });
+
+    return res.status(201).json({
+      courseId: course._id,
+      title: course.title,
+      description: course.description,
+      instructor: course.instructor
+        ? {
+          uid: course.instructor._id || course.instructor,
+          email: course.instructor.email || undefined
+        }
+        : null,
+      published: course.published
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 exports.findOne = async (req, res) => {
