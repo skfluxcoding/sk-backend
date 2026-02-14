@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const Course = require('../models/course.model');
 
 exports.findAll = async (req, res) => {
@@ -73,13 +74,28 @@ exports.update = async (req, res) => {
   res.status(200).json(course);
 };
 
+
 exports.softDelete = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const course = await Course.findOneAndUpdate({ _id: id, enabled: 1 }, { enabled: false }, { new: true });
-  if (!course) {
-    return res.status(404).json({ message: 'Course not found' });
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid course id' });
+    }
+
+    const course = await Course.findOneAndUpdate(
+      { _id: id, enabled: true },
+      { enabled: false },
+      { new: true }
+    );
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found or already disabled' });
+    }
+
+    return res.sendStatus(204);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  res.sendStatus(204);
-}
+};
