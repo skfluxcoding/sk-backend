@@ -53,13 +53,24 @@ exports.create = async (req, res) => {
 };
 
 exports.findOne = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const course = await Course.findOne({ _id: id, enabled: 1 });
-  if (!course) {
-    return res.status(404).json({ message: 'Course not found' });
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid course id' });
+    }
+
+    const course = await Course.findOne({ _id: id, enabled: true });
+
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found or disabled' });
+    }
+
+    return res.status(200).json(course);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
-  res.status(200).json(course);
 };
 
 exports.update = async (req, res) => {
