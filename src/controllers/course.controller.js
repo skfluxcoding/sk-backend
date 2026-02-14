@@ -2,37 +2,50 @@ const { default: mongoose } = require('mongoose');
 const Course = require('../models/course.model');
 
 exports.findAll = async (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
+  try {
+    let page = parseInt(req.query.page, 10) || 1;
+    let limit = parseInt(req.query.limit, 10) || 10;
 
-  const options = {
-    page,
-    limit,
-    sort: { createdAt: -1 },
-    select: 'title description instructor published',
-    populate: {
-      path: 'instructor',
-      select: 'email'
-    }
-  };
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 10;
+    if (limit > 100) limit = 100; // protección básica
 
-  const result = await Course.paginate({ enabled: 1 }, options);
+    const options = {
+      page,
+      limit,
+      sort: { createdAt: -1 },
+      select: 'title description instructor published',
+      populate: {
+        path: 'instructor',
+        select: 'email'
+      }
+    };
 
-  const data = result.docs.map(course => ({
-    courseId: course._id,
-    title: course.title,
-    description: course.description,
-    instructor: {
-      uid: course.instructor._id,
-      email: course.instructor.email,
-    },
-    published: course.published
-  }));
+    const result = await Course.paginate({ enabled: true }, options);
 
-  result.docs = data;
+    const data = result.docs.map(course => ({
+      courseId: course._id,
+      title: course.title,
+      description: course.description,
+      instructor: course.instructor
+        ? {
+          uid: course.instructor._id,
+          email: course.instructor.email
+        }
+        : null,
+      published: course.published
+    }));
 
-  res.json(result);
+    return res.status(200).json({
+      ...result,
+      docs: data
+    });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
+
 
 exports.create = async (req, res) => {
   try {
