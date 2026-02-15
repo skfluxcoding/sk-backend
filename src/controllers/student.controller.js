@@ -23,9 +23,24 @@ exports.list = async (req, res) => {
 };
 
 exports.get = async (req, res) => {
-  const student = await StudentService.findById(req.params.id);
-  if (!student) return res.sendStatus(404);
-  res.json(student);
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid student id' });
+    }
+
+    const student = await StudentService.findById(id);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    return res.status(200).json(student);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 exports.create = async (req, res) => {
