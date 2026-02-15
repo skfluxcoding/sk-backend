@@ -61,10 +61,31 @@ exports.create = async (req, res) => {
 };
 
 
+
 exports.update = async (req, res) => {
-  const student = await StudentService.update(req.params.id, req.body);
-  if (!student) return res.sendStatus(404);
-  res.json(student);
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid student id' });
+    }
+
+    if (!updates || Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: 'Request body is required' });
+    }
+
+    const student = await StudentService.update(id, updates);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    return res.status(200).json(student);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 exports.remove = async (req, res) => {
