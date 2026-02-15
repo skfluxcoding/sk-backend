@@ -110,9 +110,24 @@ exports.remove = async (req, res) => {
 };
 
 exports.softDelete = async (req, res) => {
-  const student = await StudentService.remove(req.params.id);
-  if (!student) return res.sendStatus(404);
-  res.sendStatus(204);
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: 'Invalid student id' });
+    }
+
+    const student = await StudentService.softDelete(id);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found or already disabled' });
+    }
+
+    return res.sendStatus(204);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
 
 exports.create = async (req, res) => {
