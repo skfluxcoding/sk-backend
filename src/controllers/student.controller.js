@@ -44,9 +44,22 @@ exports.get = async (req, res) => {
 };
 
 exports.create = async (req, res) => {
-  const student = await StudentService.create(req.body);
-  res.status(201).json(student);
+  try {
+    const payload = req.body;
+
+    if (!payload || Object.keys(payload).length === 0) {
+      return res.status(400).json({ message: 'Request body is required' });
+    }
+
+    const student = await StudentService.create(payload);
+
+    return res.status(201).json(student);
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };
+
 
 exports.update = async (req, res) => {
   const student = await StudentService.update(req.params.id, req.body);
