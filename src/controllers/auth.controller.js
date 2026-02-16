@@ -39,20 +39,32 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    let { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
-  if (!user) return res.sendStatus(401);
+    email = email.trim().toLowerCase();
 
-  const match = await passwordUtil.compare(password, user.password);
-  if (!match) {
-    return res.status(400).json({ message: 'Invalid credentials' });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const match = await passwordUtil.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = jwtUtil.generateAccessToken(user);
+
+    return res.status(200).json({ accessToken: token });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  const token = jwtUtil.generateAccessToken(user);
-
-  res.json({ accessToken: token });
 };
+
