@@ -1,4 +1,3 @@
-const { default: mongoose } = require('mongoose');
 const Course = require('../models/course.model');
 
 exports.findAll = async (req, res) => {
@@ -55,10 +54,6 @@ exports.create = async (req, res) => {
       return res.status(400).json({ message: 'Title is required' });
     }
 
-    if (instructor && !mongoose.isValidObjectId(instructor)) {
-      return res.status(400).json({ message: 'Invalid instructor id' });
-    }
-
     const course = await Course.create({
       title,
       description,
@@ -88,10 +83,6 @@ exports.findOne = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: 'Invalid course id' });
-    }
-
     const course = await Course.findOne({ _id: id, enabled: true });
 
     if (!course) {
@@ -109,10 +100,6 @@ exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
-
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: 'Invalid course id' });
-    }
 
     const course = await Course.findOneAndUpdate(
       { _id: id, enabled: true },
@@ -135,10 +122,6 @@ exports.update = async (req, res) => {
 exports.softDelete = async (req, res) => {
   try {
     const { id } = req.params;
-
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: 'Invalid course id' });
-    }
 
     const course = await Course.findOneAndUpdate(
       { _id: id, enabled: true },

@@ -1,4 +1,4 @@
-const StudentService = require('../services/student.service');
+const studentService = require('../services/student.service');
 
 exports.list = async (req, res) => {
   try {
@@ -9,7 +9,7 @@ exports.list = async (req, res) => {
     if (limit < 1) limit = 10;
     if (limit > 100) limit = 100;
 
-    const result = await StudentService.paginate({
+    const result = await studentService.paginate({
       page,
       limit,
       sort: { createdAt: -1 }
@@ -30,7 +30,7 @@ exports.get = async (req, res) => {
       return res.status(400).json({ message: 'Invalid student id' });
     }
 
-    const student = await StudentService.findById(id);
+    const student = await studentService.findById(id);
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -51,7 +51,7 @@ exports.create = async (req, res) => {
       return res.status(400).json({ message: 'Request body is required' });
     }
 
-    const student = await StudentService.create(payload);
+    const student = await studentService.create(payload);
 
     return res.status(201).json(student);
 
@@ -75,7 +75,7 @@ exports.update = async (req, res) => {
       return res.status(400).json({ message: 'Request body is required' });
     }
 
-    const student = await StudentService.update(id, updates);
+    const student = await studentService.update(id, updates);
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -96,7 +96,7 @@ exports.remove = async (req, res) => {
       return res.status(400).json({ message: 'Invalid student id' });
     }
 
-    const student = await StudentService.remove(id);
+    const student = await studentService.remove(id);
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
@@ -117,7 +117,7 @@ exports.softDelete = async (req, res) => {
       return res.status(400).json({ message: 'Invalid student id' });
     }
 
-    const student = await StudentService.softDelete(id);
+    const student = await studentService.softDelete(id);
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found or already disabled' });
@@ -135,6 +135,6 @@ exports.create = async (req, res) => {
     return res.status(400).json({ message: 'name and email are required' });
   }
 
-  const student = await StudentService.create(req.body);
+  const student = await studentService.create(req.body);
   res.status(201).json(student);
 };
