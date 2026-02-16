@@ -43,27 +43,8 @@ exports.findAll = async (req, res) => {
 
 
 exports.create = async (req, res) => {
-    const { title, description, instructor, published } = req.body;
-
-    const course = await Course.create({
-      title,
-      description,
-      instructor,
-      published
-    });
-
-    return res.status(201).json({
-      courseId: course._id,
-      title: course.title,
-      description: course.description,
-      instructor: course.instructor
-        ? {
-          uid: course.instructor._id || course.instructor,
-          email: course.instructor.email || undefined
-        }
-        : null,
-      published: course.published
-    });
+    const course = await courseService.create(req.body)
+    return res.status(201).json(course);
 }
 
 exports.findOne = async (req, res) => {

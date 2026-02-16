@@ -1,7 +1,25 @@
 const ResourceNotFoundException = require('../exception/resourceNotFoud.exception');
 const Course = require('../models/course.model');
 
-exports.create = (data) => Course.create(data);
+exports.create = async (data) => {
+  const { title, description, instructor, published } = data;
+
+  const course = await Course.create({
+    title,
+    description,
+    instructor,
+    published
+  });
+
+  return {
+    courseId: course._id,
+    title: course.title,
+    description: course.description,
+    published: course.published
+  }
+
+}
+
 exports.findAll = () => Course.find({ deleted: false });
 
 exports.findById = async (id) => {
