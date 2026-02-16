@@ -3,24 +3,42 @@ const passwordUtil = require('../utils/password.util');
 const jwtUtil = require('../utils/jwt.util');
 
 exports.register = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    let { email, password } = req.body;
 
-  if (password.length < 6) {
-    return res.status(400).json({ message: 'Password must be at least 6 characters long' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    email = email.trim().toLowerCase();
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(409).json({ message: 'User already exists' });
+    }
+
+    const hashedPassword = await passwordUtil.hash(password);
+
+    const user = await User.create({
+      email,
+      password: hashedPassword
+    });
+
+    const token = jwtUtil.generateAccessToken(user);
+
+    return res.status(201).json({ accessToken: token });
+
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  const exists = await User.findOne({ email });
-  if (exists) return res.status(409).json({ message: 'User already exists' });
-
-  const user = await User.create({
-    email,
-    password: await passwordUtil.hash(password)
-  });
-
-  const token = jwtUtil.generateAccessToken(user);
-
-  res.status(201).json({ accessToken: token });
 };
+
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
