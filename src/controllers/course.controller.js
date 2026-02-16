@@ -1,58 +1,48 @@
 const Course = require('../models/course.model');
 
 exports.findAll = async (req, res) => {
-  try {
-    let page = parseInt(req.query.page, 10) || 1;
-    let limit = parseInt(req.query.limit, 10) || 10;
+  let page = parseInt(req.query.page, 10) || 1;
+  let limit = parseInt(req.query.limit, 10) || 10;
 
-    if (page < 1) page = 1;
-    if (limit < 1) limit = 10;
-    if (limit > 100) limit = 100; // protección básica
+  if (page < 1) page = 1;
+  if (limit < 1) limit = 10;
+  if (limit > 100) limit = 100; // protección básica
 
-    const options = {
-      page,
-      limit,
-      sort: { createdAt: -1 },
-      select: 'title description instructor published',
-      populate: {
-        path: 'instructor',
-        select: 'email'
+  const options = {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+    select: 'title description instructor published',
+    populate: {
+      path: 'instructor',
+      select: 'email'
+    }
+  };
+
+  const result = await Course.paginate({ enabled: true }, options);
+
+  const data = result.docs.map(course => ({
+    courseId: course._id,
+    title: course.title,
+    description: course.description,
+    instructor: course.instructor
+      ? {
+        uid: course.instructor._id,
+        email: course.instructor.email
       }
-    };
+      : null,
+    published: course.published
+  }));
 
-    const result = await Course.paginate({ enabled: true }, options);
-
-    const data = result.docs.map(course => ({
-      courseId: course._id,
-      title: course.title,
-      description: course.description,
-      instructor: course.instructor
-        ? {
-          uid: course.instructor._id,
-          email: course.instructor.email
-        }
-        : null,
-      published: course.published
-    }));
-
-    return res.status(200).json({
-      ...result,
-      docs: data
-    });
-
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
+  return res.status(200).json({
+    ...result,
+    docs: data
+  });
+}
 
 
 exports.create = async (req, res) => {
-  try {
     const { title, description, instructor, published } = req.body;
-
-    if (!title) {
-      return res.status(400).json({ message: 'Title is required' });
-    }
 
     const course = await Course.create({
       title,
@@ -73,11 +63,7 @@ exports.create = async (req, res) => {
         : null,
       published: course.published
     });
-
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
+}
 
 exports.findOne = async (req, res) => {
   try {
