@@ -1,4 +1,5 @@
 const Course = require('../models/course.model');
+const courseService = require('../services/course.service');
 
 exports.findAll = async (req, res) => {
   let page = parseInt(req.query.page, 10) || 1;
@@ -66,21 +67,10 @@ exports.create = async (req, res) => {
 }
 
 exports.findOne = async (req, res) => {
-  try {
     const { id } = req.params;
-
-    const course = await Course.findOne({ _id: id, enabled: true });
-
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found or disabled' });
-    }
-
+    const course = await courseService.findById(id);
     return res.status(200).json(course);
-
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
+}
 
 exports.update = async (req, res) => {
   try {
