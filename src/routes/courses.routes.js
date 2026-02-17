@@ -7,7 +7,7 @@ const { createCourse, findAllCourses, updateCourse } = require('../validators/co
 
 router.use(checkJwt);
 router.use(checkRoleUserOrAdmin);
-router.get('/', findAllCourses, validateFields, controller.findAll);
+router.get('/', findAllCourses, validateFields, controller.paginate);
 router.get('/:id', validateObjectId, controller.findOne);
 router.post('/', createCourse, validateFields, controller.create);
 router.put('/:id', validateObjectId, updateCourse, validateFields, controller.update);

@@ -1,98 +1,37 @@
 const Course = require('../models/course.model');
 const courseService = require('../services/course.service');
 
-exports.findAll = async (req, res) => {
+exports.paginate = async (req, res) => {
   let page = parseInt(req.query.page, 10) || 1;
   let limit = parseInt(req.query.limit, 10) || 10;
 
   if (page < 1) page = 1;
   if (limit < 1) limit = 10;
-  if (limit > 100) limit = 100; // protección básica
+  if (limit > 100) limit = 100;
 
-  const options = {
-    page,
-    limit,
-    sort: { createdAt: -1 },
-    select: 'title description instructor published',
-    populate: {
-      path: 'instructor',
-      select: 'email'
-    }
-  };
-
-  const result = await Course.paginate({ enabled: true }, options);
-
-  const data = result.docs.map(course => ({
-    courseId: course._id,
-    title: course.title,
-    description: course.description,
-    instructor: course.instructor
-      ? {
-        uid: course.instructor._id,
-        email: course.instructor.email
-      }
-      : null,
-    published: course.published
-  }));
-
-  return res.status(200).json({
-    ...result,
-    docs: data
-  });
+  const result = await courseService.paginate(page, limit);
+  return res.status(200).json(result);
 }
 
-
 exports.create = async (req, res) => {
-    const course = await courseService.create(req.body)
-    return res.status(201).json(course);
+  const course = await courseService.create(req.body)
+  return res.status(201).json(course);
 }
 
 exports.findOne = async (req, res) => {
-    const { id } = req.params;
-    const course = await courseService.findById(id);
-    return res.status(200).json(course);
+  const { id } = req.params;
+  const course = await courseService.findById(id);
+  return res.status(200).json(course);
 }
 
 exports.update = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updates = req.body;
-
-    const course = await Course.findOneAndUpdate(
-      { _id: id, enabled: true },
-      updates,
-      { new: true, runValidators: true }
-    );
-
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found or disabled' });
-    }
-
-    return res.status(200).json(course);
-
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
-  }
+  const { id } = req.params;
+  const course = await courseService.update(id, req.body);
+  return res.status(200).json(course);
 };
-
 
 exports.softDelete = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const course = await Course.findOneAndUpdate(
-      { _id: id, enabled: true },
-      { enabled: false },
-      { new: true }
-    );
-
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found or already disabled' });
-    }
-
-    return res.sendStatus(204);
-
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
+  const { id } = req.params;
+  await courseService.softDelete(id);
+  return res.sendStatus(204);
+}

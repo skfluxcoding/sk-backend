@@ -1,6 +1,33 @@
 const ResourceNotFoundException = require('../exception/resourceNotFoud.exception');
 const Course = require('../models/course.model');
 
+exports.paginate = async (page, limit) => {
+  const options = {
+    page,
+    limit,
+    sort: { createdAt: -1 },
+    select: 'title description instructor published',
+    populate: {
+      path: 'instructor',
+      select: 'email'
+    }
+  };
+
+  const result = await Course.paginate({ enabled: true }, options);
+
+  const data = result.docs.map(course => ({
+    courseId: course._id,
+    title: course.title,
+    description: course.description,
+    published: course.published
+  }));
+
+  return {
+    ...result,
+    docs: data
+  }
+}
+
 exports.create = async (data) => {
   const { title, description, instructor, published } = data;
 
@@ -20,7 +47,7 @@ exports.create = async (data) => {
 
 }
 
-exports.findAll = () => Course.find({ deleted: false });
+
 
 exports.findById = async (id) => {
   const course = await Course.findOne({ _id: id });
@@ -35,8 +62,8 @@ exports.findById = async (id) => {
   }
 }
 
-exports.update = (id, data) => {
-  const course = Course.findOneAndUpdate({ _id: id, deleted: false }, data, { new: true });
+exports.update = async (id, data) => {
+  const course = await Course.findOneAndUpdate({ _id: id, deleted: false }, data, { new: true });
   if (!course) {
     throw new ResourceNotFoundException('Course not found or disabled');
   }
@@ -48,8 +75,14 @@ exports.update = (id, data) => {
   }
 }
 
-exports.remove = (id) =>
-  Course.findByIdAndUpdate(id, { deleted: true }, { new: true });
+exports.softDelete = async (id) => {
+  const course = await Course.findOneAndUpdate(
+    { _id: id, enabled: true },
+    { enabled: false },
+    { new: true }
+  );
 
-exports.paginate = (options) =>
-  Course.paginate({ deleted: false }, options);
+  if (!course) {
+    throw new ResourceNotFoundException('Course not found or already disabled');
+  }
+}
