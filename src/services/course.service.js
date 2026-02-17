@@ -1,4 +1,4 @@
-const ResourceNotFoundException = require('../exception/resourceNotFoud.exception');
+const ResourceNotFoundException = require('../exception/resource.notfound.exception');
 const Course = require('../models/course.model');
 
 exports.paginate = async (page, limit) => {
@@ -46,8 +46,6 @@ exports.create = async (data) => {
   }
 
 }
-
-
 
 exports.findById = async (id) => {
   const course = await Course.findOne({ _id: id });

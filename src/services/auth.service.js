@@ -1,8 +1,8 @@
 const passwordUtil = require('../utils/password.util');
 const jwtUtil = require('../utils/jwt.util');
 const User = require('../models/user.model');
-const ResourceAlreadyExistsException = require('../exceptions/resourceAlreadyExists.exception');
 const UserNotFoundException = require('../exception/user.notfound.exception');
+const ResourceAlreadyExistsException = require('../exception/resource.already.exists.exception');
 
 exports.register = async (data) => {
     let { email, password } = data;
