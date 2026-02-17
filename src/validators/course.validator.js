@@ -8,10 +8,6 @@ exports.createCourse = [
     body('description')
         .notEmpty().withMessage('La descripción es obligatoria'),
 
-    body('instructor')
-        .notEmpty().withMessage('Instructor requerido')
-        .isMongoId().withMessage('Instructor inválido'),
-
     body('published')
         .optional()
         .isBoolean().withMessage('Published debe ser boolean')
@@ -24,11 +20,7 @@ exports.updateCourse = [
 
     body('description')
         .notEmpty().withMessage('La descripción es obligatoria'),
-
-    body('instructor')
-        .notEmpty().withMessage('Instructor requerido')
-        .isMongoId().withMessage('Instructor inválido'),
-
+        
     body('published')
         .optional()
         .isBoolean().withMessage('Published debe ser boolean')
