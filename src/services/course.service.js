@@ -11,7 +11,7 @@ exports.paginate = async (page, limit) => {
       path: 'instructor',
       select: 'email'
     }
-  };
+  }
 
   const result = await Course.paginate({ enabled: true }, options);
 
@@ -44,7 +44,6 @@ exports.create = async (data) => {
     description: course.description,
     published: course.published
   }
-
 }
 
 exports.findById = async (id) => {
@@ -61,7 +60,11 @@ exports.findById = async (id) => {
 }
 
 exports.update = async (id, data) => {
-  const course = await Course.findOneAndUpdate({ _id: id, deleted: false }, data, { new: true });
+  const course = await Course.findOneAndUpdate(
+    { _id: id, deleted: false },
+    data,
+    { new: true }
+  );
   if (!course) {
     throw new ResourceNotFoundException('Course not found or disabled');
   }

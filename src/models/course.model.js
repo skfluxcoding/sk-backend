@@ -11,10 +11,6 @@ const CourseSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  instructor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
   published: {
     type: Boolean,
     default: false
