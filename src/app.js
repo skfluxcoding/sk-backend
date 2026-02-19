@@ -17,7 +17,7 @@ app.use(morgan('dev'));
 
 app.use('/auth', authRoutes);
 app.use('/courses', courseRoutes);
-app.use('/user', userRouter);
+app.use('/users', userRouter);
 
 app.use(errorMiddleware);
 

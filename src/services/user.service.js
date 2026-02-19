@@ -1,5 +1,6 @@
 const ResourceAlreadyExistsException = require("../exception/resource.already.exists.exception");
 const User = require("../models/user.model");
+const passwordUtil = require('../utils/password.util');
 
 exports.create = async (data) => {
     let { email, password, roles } = data;
@@ -20,10 +21,10 @@ exports.create = async (data) => {
             roles = ['USER'];
         }
     }
-
+    const passwordHashed = await passwordUtil.hash(password);
     const user = await User.create({
         email,
-        password,
+        password: passwordHashed,
         roles
     });
 
