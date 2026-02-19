@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const courseRoutes = require('./routes/courses.routes');
 
 const errorMiddleware = require('./middleware/error.middleware');
+const userRouter = require('./routes/user.routes');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(morgan('dev'));
 
 app.use('/auth', authRoutes);
 app.use('/courses', courseRoutes);
+app.use('/user', userRouter);
 
 app.use(errorMiddleware);
 
