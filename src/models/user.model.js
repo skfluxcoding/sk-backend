@@ -13,6 +13,14 @@ const UserSchema = new mongoose.Schema({
   roles: {
     type: [String],
     default: ['USER']
+  },
+  isActive: {
+    type: Boolean,
+    default: false
+  },
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 
