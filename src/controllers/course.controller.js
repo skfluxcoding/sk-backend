@@ -1,4 +1,3 @@
-const Course = require('../models/course.model');
 const courseService = require('../services/course.service');
 
 exports.paginate = async (req, res) => {
