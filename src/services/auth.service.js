@@ -3,9 +3,11 @@ const jwtUtil = require('../utils/jwt.util');
 const User = require('../models/user.model');
 const UserNotFoundException = require('../exception/user.notfound.exception');
 const ResourceAlreadyExistsException = require('../exception/resource.already.exists.exception');
+const Verification = require('../models/verification.model');
+const { sendVerificationCode } = require('./mail.service');
 
 exports.register = async (data) => {
-    let { email, password } = data;
+    const { email, password } = data;
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -19,25 +21,56 @@ exports.register = async (data) => {
         password: hashedPassword
     });
 
-    const token = jwtUtil.generateAccessToken(user);
+    // Invalidate previous active tokens just in case
+    await Verification.updateMany(
+        { user: user._id, type: 'ACTIVATE_USER', used: false },
+        { used: true }
+    );
 
-    return token;
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await passwordUtil.hash(code);
+
+    await Verification.create({
+        user: user._id,
+        type: 'ACTIVATE_USER',
+        token: hashedCode,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        used: false
+    });
+
+    await sendVerificationCode(user.email, code);
 }
 
 exports.login = async (data) => {
-    let { email, password } = data;
+    const { email, password } = data;
 
     const user = await User.findOne({ email });
     if (!user) {
-        throw new UserNotFoundException('Invalid credentials');
+        throw new UserNotFoundException('INVALID_CREDENTIALS');
     }
 
     const match = await passwordUtil.compare(password, user.password);
     if (!match) {
-        throw new UserNotFoundException('Invalid credentials');
+        throw new UserNotFoundException('INVALID_CREDENTIALS');
     }
 
-    const token = jwtUtil.generateAccessToken(user);
+    if (!user.isActive) {
+        throw new UserNotFoundException('ACCOUNT_NOT_ACTIVATED');
+    }
 
-    return token;
-}
+    if (user.twoFactorEnabled) {
+        return {
+            requiresTwoFactor: true,
+            userId: user._id
+        };
+    }
+
+    const token = jwtUtil.generateAccessToken({
+        uid: user._id,
+        roles: user.roles
+    });
+
+    return {
+        accessToken: token
+    };
+};
