@@ -6,11 +6,7 @@ exports.paginate = async (page, limit) => {
     page,
     limit,
     sort: { createdAt: -1 },
-    select: 'title description instructor published',
-    populate: {
-      path: 'instructor',
-      select: 'email'
-    }
+    select: 'title description published'
   }
 
   const result = await Course.paginate({ enabled: true }, options);
@@ -29,12 +25,11 @@ exports.paginate = async (page, limit) => {
 }
 
 exports.create = async (data) => {
-  const { title, description, instructor, published } = data;
+  const { title, description, published } = data;
 
   const course = await Course.create({
     title,
     description,
-    instructor,
     published
   });
 
