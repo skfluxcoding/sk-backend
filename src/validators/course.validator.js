@@ -5,9 +5,6 @@ exports.createCourse = [
         .notEmpty().withMessage('El título es obligatorio')
         .isLength({ min: 3 }).withMessage('Mínimo 3 caracteres'),
 
-    body('description')
-        .notEmpty().withMessage('La descripción es obligatoria'),
-
     body('published')
         .optional()
         .isBoolean().withMessage('Published debe ser boolean')
@@ -17,9 +14,6 @@ exports.updateCourse = [
     body('title')
         .notEmpty().withMessage('El título es obligatorio')
         .isLength({ min: 3 }).withMessage('Mínimo 3 caracteres'),
-
-    body('description')
-        .notEmpty().withMessage('La descripción es obligatoria'),
         
     body('published')
         .optional()
