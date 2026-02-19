@@ -56,7 +56,7 @@ exports.findById = async (id) => {
 
 exports.update = async (id, data) => {
   const course = await Course.findOneAndUpdate(
-    { _id: id, deleted: false },
+    { _id: id, enabled: true },
     data,
     { new: true }
   );
