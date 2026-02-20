@@ -17,10 +17,6 @@ const UserSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: false
-  },
-  twoFactorEnabled: {
-    type: Boolean,
-    default: false
   }
 }, { timestamps: true });
 
