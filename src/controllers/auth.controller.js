@@ -9,6 +9,17 @@ exports.register = async (req, res) => {
   });
 };
 
+exports.verifyEmail = async (req, res) => {
+  const { email, code } = req.body;
+
+  const token = await authService.verifyEmail(email, code);
+
+  return res.status(200).json({
+    ok: true,
+    message: 'Email verified successfully.',
+    token
+  });
+}
 
 exports.login = async (req, res) => {
   const result = await authService.login(req.body);
