@@ -9,6 +9,16 @@ exports.register = async (req, res) => {
   });
 };
 
+exports.resendVerification = async (req, res) => {
+  await authService.resendVerification(req.body.email);
+
+  return res.status(200).json({
+    ok: true,
+    message: 'If the account exists, a new verification code has been sent.'
+  });
+};
+
+
 exports.verifyEmail = async (req, res) => {
   const { email, code } = req.body;
 
