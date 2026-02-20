@@ -1,4 +1,4 @@
-const jwtUtil = require("../utils/jwt.util");
+const jwtProvider = require("../provider/jwt.provider");
 
 exports.checkJwt = (req, res, next) => {
   try {
@@ -14,9 +14,8 @@ exports.checkJwt = (req, res, next) => {
       return res.status(401).json({ message: 'Token inválido' });
     }
 
-    req.user = jwtUtil.verifyToken(token);
+    req.user = jwtProvider.verifyToken(token);
     next();
-
   } catch (error) {
     return res.status(401).json({ message: 'Token inválido o expirado' });
   }
