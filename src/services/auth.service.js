@@ -41,6 +41,41 @@ exports.register = async (data) => {
     await sendVerificationCode(user.email, code);
 }
 
+exports.verifyEmail = async (email, code) => {
+    const user = await User.findOne({ email });    
+    if (!user) {
+        throw new ResourceAlreadyExistsException('User not found');
+    }
+
+    const verification = await Verification.findOne({
+        user: user._id,
+        type: 'ACTIVATE_USER',
+        used: false,
+        expiresAt: { $gt: new Date() }
+    });    
+
+    code = code.toString();
+    const isValidCode = verification && await passwordUtil.compare(code, verification.token);
+
+    console.log(isValidCode);
+    
+
+    if (!verification || !isValidCode) {
+        throw new ResourceAlreadyExistsException('Invalid or expired verification code');
+    }
+
+    user.isActive = true;
+    await user.save();
+
+    verification.used = true;
+    await verification.save();
+
+    const token = jwtUtil.generateAccessToken(user);
+
+    return token;
+
+}
+
 exports.login = async (data) => {
     const { email, password } = data;
 
