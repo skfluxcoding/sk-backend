@@ -1,34 +1,30 @@
-const passwordUtil = require('../utils/password.util');
-const jwtUtil = require('../utils/jwt.util');
-const User = require('../models/user.model');
-const UserNotFoundException = require('../exception/user.notfound.exception');
-const ResourceAlreadyExistsException = require('../exception/resource.already.exists.exception');
+const passwordProvider = require('../provider/password.provider');
+const jwtProvider = require('../provider/jwt.provider');
 const Verification = require('../models/verification.model');
 const { sendVerificationCode } = require('./mail.service');
+const authRepository = require('../repository/auth.repository');
+const verificationRepository = require('../repository/verification.repository');
+const AuthException = require('../exception/auth.exception');
 
 exports.register = async (data) => {
     const { email, password } = data;
 
-    const exists = await User.findOne({ email });
+    const exists = await authRepository.findByEmailIgnoreCase(email);
     if (exists) {
-        throw new ResourceAlreadyExistsException('User already exists');
+        throw new AuthException('EMAIL_ALREADY_EXISTS', 409);
     }
 
-    const hashedPassword = await passwordUtil.hash(password);
+    const hashedPassword = await passwordProvider.hash(password);
 
-    const user = await User.create({
-        email,
-        password: hashedPassword
-    });
+    const user = await authRepository.createUser(email, hashedPassword);
 
-    // Invalidate previous active tokens just in case
     await Verification.updateMany(
         { user: user._id, type: 'ACTIVATE_USER', used: false },
         { used: true }
     );
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedCode = await passwordUtil.hash(code);
+    const hashedCode = await passwordProvider.hash(code);
 
     await Verification.create({
         user: user._id,
@@ -42,26 +38,25 @@ exports.register = async (data) => {
 }
 
 exports.verifyEmail = async (email, code) => {
-    const user = await User.findOne({ email });    
+    const user = await authRepository.findByEmailIgnoreCase(email);
     if (!user) {
-        throw new ResourceAlreadyExistsException('User not found');
+        throw new AuthException('USER_NOT_FOUND', 404);
     }
 
-    const verification = await Verification.findOne({
-        user: user._id,
-        type: 'ACTIVATE_USER',
-        used: false,
-        expiresAt: { $gt: new Date() }
-    });    
+    const verification = await verificationRepository.findByIdUserdAndType(user._id, 'ACTIVATE_USER');
 
-    code = code.toString();
-    const isValidCode = verification && await passwordUtil.compare(code, verification.token);
+    if (!verification) {
+        throw new AuthException('ACTIVATE_USER_NOT_FOUND', 409);
+    }
 
-    console.log(isValidCode);
-    
+    if (verification.expiresAt < new Date()) {
+        throw new AuthException('VERIFICATION_CODE_EXPIRED', 409);
+    }
 
-    if (!verification || !isValidCode) {
-        throw new ResourceAlreadyExistsException('Invalid or expired verification code');
+    const isValidCode = await passwordProvider.compare(code, verification.token);
+
+    if (!isValidCode) {
+        throw new AuthException('VERIFICATION_CODE_INVALID', 409);
     }
 
     user.isActive = true;
@@ -70,42 +65,62 @@ exports.verifyEmail = async (email, code) => {
     verification.used = true;
     await verification.save();
 
-    const token = jwtUtil.generateAccessToken(user);
+    const token = jwtProvider.generateAccessToken(user);
 
     return token;
-
 }
 
 exports.login = async (data) => {
     const { email, password } = data;
 
-    const user = await User.findOne({ email });
+    const user = await authRepository.findByEmailIgnoreCase(email);
     if (!user) {
-        throw new UserNotFoundException('INVALID_CREDENTIALS');
+        throw new AuthException('INVALID_CREDENTIALS');
     }
 
-    const match = await passwordUtil.compare(password, user.password);
+    const match = await passwordProvider.compare(password, user.password);
     if (!match) {
-        throw new UserNotFoundException('INVALID_CREDENTIALS');
+        throw new AuthException('INVALID_CREDENTIALS');
     }
 
     if (!user.isActive) {
-        throw new UserNotFoundException('ACCOUNT_NOT_ACTIVATED');
+        throw new AuthException('ACCOUNT_NOT_ACTIVATED');
     }
 
-    if (user.twoFactorEnabled) {
-        return {
-            requiresTwoFactor: true,
-            userId: user._id
-        };
-    }
-
-    const token = jwtUtil.generateAccessToken({
-        uid: user._id,
-        roles: user.roles
-    });
+    const token = jwtProvider.generateAccessToken(user);
 
     return {
         accessToken: token
     };
+};
+
+exports.resendVerification = async (email) => {
+    const user = await authRepository.findByEmailIgnoreCase(email);
+
+    if (!user) {
+        throw new AuthException('USER_NOT_FOUND', 404);
+    }
+
+    if (user.isActive) {
+        throw new AuthException('ACCOUNT_ALREADY_ACTIVE', 409);
+    }
+
+    const lastVerification = await verificationRepository.findLastActiveByUserAndType(user._id, 'ACTIVATE_USER');
+
+    if (lastVerification) {
+        const secondsSinceLast = (Date.now() - lastVerification.createdAt.getTime()) / 1000;
+
+        if (secondsSinceLast < 60) {
+            throw new AuthException('WAIT_BEFORE_REQUESTING_NEW_CODE', 409);
+        }
+    }
+
+    await verificationRepository.invalidateByUserAndType(user._id, 'ACTIVATE_USER');
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedCode = await passwordProvider.hash(code);
+
+    await verificationRepository.createVerification(user._id, 'ACTIVATE_USER', hashedCode);
+
+    await sendVerificationCode(user.email, code);
 };
