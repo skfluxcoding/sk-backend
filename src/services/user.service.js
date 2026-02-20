@@ -1,7 +1,7 @@
 const ResourceAlreadyExistsException = require("../exception/resource.already.exists.exception");
 const User = require("../models/user.model");
 const Verification = require("../models/verification.model");
-const passwordUtil = require('../utils/password.util');
+const passwordProvider = require('../provider/password.provider');
 const { sendVerificationCode } = require("./mail.service");
 
 exports.create = async (data) => {
@@ -23,7 +23,7 @@ exports.create = async (data) => {
             roles = ['USER'];
         }
     }
-    const passwordHashed = await passwordUtil.hash(password);
+    const passwordHashed = await passwordProvider.hash(password);
 
     const user = await User.create({
         email,
@@ -37,7 +37,7 @@ exports.create = async (data) => {
     );
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const hashedCode = await passwordUtil.hash(code);
+    const hashedCode = await passwordProvider.hash(code);
 
     await Verification.create({
         user: user._id,
@@ -49,11 +49,3 @@ exports.create = async (data) => {
 
     await sendVerificationCode(user.email, code);
 }
-
-/**
- * const code = Math.floor(100000 + Math.random() * 900000);
-
-    const info = await sendVerificationCode(user.email, code);
- */
-//     const result = await userService.verifyEmail(email, code);
-
