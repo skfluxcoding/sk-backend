@@ -3,10 +3,8 @@ const controller = require('../controllers/auth.controller');
 const { validLogin } = require('../validators/auth.validator');
 const validateFields = require('../middleware/validateFields');
 
-router.use(validLogin);
-router.use(validateFields);
-
-router.post('/register', controller.register);
-router.post('/login', controller.login);
+router.post('/register', validLogin, validateFields, controller.register);
+router.post('/login', validLogin, validateFields, controller.login);
+router.post('/verify-email', controller.verifyEmail);
 
 module.exports = router;
