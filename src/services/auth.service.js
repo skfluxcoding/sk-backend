@@ -18,21 +18,12 @@ exports.register = async (data) => {
 
     const user = await authRepository.createUser(email, hashedPassword);
 
-    await Verification.updateMany(
-        { user: user._id, type: 'ACTIVATE_USER', used: false },
-        { used: true }
-    );
+    await verificationRepository.invalidateByUserAndType(user._id, 'ACTIVATE_USER');
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedCode = await passwordProvider.hash(code);
 
-    await Verification.create({
-        user: user._id,
-        type: 'ACTIVATE_USER',
-        token: hashedCode,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-        used: false
-    });
+    await verificationRepository.createVerification(user._id, 'ACTIVATE_USER', hashedCode);
 
     await sendVerificationCode(user.email, code);
 }
